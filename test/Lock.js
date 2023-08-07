@@ -24,14 +24,10 @@ describe("Minting and Launching", function () {
     expect(owner.address).to.equal(creator);
   });
 
-  it("Launching sends msg.sender tokens to the Contract and Currently Listed is total amount minted", async function () {
+  it("Launching token should transfer total minted amount to the contract", async function () {
     const token = await ethers.deployContract("SocialTokens");
     const [owner, addr1] = await ethers.getSigners();
-    await token.mintSocialToken(
-      ethers.parseEther("10"),
-      "karthikeya",
-      ethers.parseEther("10")
-    );
+    await token.mintSocialToken(1000, "karthikeya", 10);
     const currentTokenId = await token.getCurrentTokenId();
     const price = ethers.parseEther("20");
     await token.launchSocialToken(currentTokenId, price);
@@ -39,7 +35,40 @@ describe("Minting and Launching", function () {
       currentTokenId,
       owner.address
     );
-    const currentlyListed = ethers.formatEther(tokenHolder[3]);
-    expect(ethers.parseEther("10")).to.equal(currentlyListed);
+    const holdingAmount = tokenHolder[2];
+    const inputAmount = ethers.parseEther("0");
+    expect(inputAmount).to.eq(holdingAmount);
   });
+});
+
+describe("Marketplace", function () {
+  it("Buying a social token creates an new mapping and transfers the given amount of token", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    const currentTokenId = await token.getCurrentTokenId();
+    const price = 2;
+    await token.launchSocialToken(currentTokenId, price);
+    await token.connect(addr1).getEthosLink();
+    await token.connect(addr1).buySocialToken(currentTokenId, 1, owner.address);
+    const buyer = await token.socialTokenHolders(currentTokenId, addr1.address);
+    const holdingAmount = buyer[2];
+    const inputAmount = 1;
+    expect(inputAmount).to.eq(holdingAmount);
+  });
+});
+
+describe("User", function () {
+  it("User can get the EthosLink", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).getEthosLink();
+    const EthosLink = await token.EthosLink();
+    const OwnerBalnace = await token.balanceOf(owner.address, EthosLink);
+    const inputAmount = ethers.parseEther("100");
+    expect(inputAmount).to.eq(OwnerBalnace);
+  });
+
+  it("User are able to list their hodling tokens", async function () {});
+
 });

@@ -69,6 +69,11 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         return super.supportsInterface(interfaceId);
     }
 
+    function getEthosLink() public {
+        uint amount = 100 ether;
+        _mint(msg.sender, EthosLink, amount, "");
+    }
+
     function mintSocialToken(
         uint amount,
         string memory URI,
@@ -140,7 +145,8 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         );
         require(
             balanceOf(msg.sender, EthosLink) >=
-                socialTokenHolders[_id][_seller].priceByHolder * _amount
+                (socialTokenHolders[_id][_seller].priceByHolder * _amount),
+            "You do not have enough EthosLink"
         );
         if (socialTokenHolders[_id][msg.sender].tokenID != _id) {
             socialTokenHolders[_id][msg.sender] = SocialTokenHolder(
@@ -157,21 +163,30 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         socialTokens[_id].currentlyListedAmount -= _amount;
         socialTokenHolders[_id][_seller].listedAmount -= _amount;
         _safeTransferFrom(address(this), msg.sender, _id, _amount, "");
-        _safeTransferFrom(
-            msg.sender,
-            _seller,
-            EthosLink,
-            socialTokenHolders[_id][_seller].priceByHolder * _amount,
-            ""
-        );
         if (msg.sender != socialTokens[_id].creator) {
             uint royalty = ((socialTokenHolders[_id][_seller].priceByHolder *
                 _amount) * socialTokens[_id].resaleRoyaltyPercentage) / 100;
             _safeTransferFrom(
-                _seller,
+                msg.sender,
                 socialTokens[_id].creator,
                 EthosLink,
                 royalty,
+                ""
+            );
+            _safeTransferFrom(
+                msg.sender,
+                _seller,
+                EthosLink,
+                (socialTokenHolders[_id][_seller].priceByHolder * _amount) -
+                    royalty,
+                ""
+            );
+        } else {
+            _safeTransferFrom(
+                msg.sender,
+                _seller,
+                EthosLink,
+                socialTokenHolders[_id][_seller].priceByHolder * _amount,
                 ""
             );
         }
