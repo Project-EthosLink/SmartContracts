@@ -69,6 +69,41 @@ describe("User", function () {
     expect(inputAmount).to.eq(OwnerBalnace);
   });
 
-  it("User are able to list their hodling tokens", async function () {});
+  it("User are able to list their hodling tokens", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    const currentTokenId = await token.getCurrentTokenId();
+    const price = 2;
+    await token.launchSocialToken(currentTokenId, price);
+    await token.connect(addr1).getEthosLink();
+    await token.connect(addr1).buySocialToken(currentTokenId, 1, owner.address);
+    await token.connect(addr1).listTokens(1, currentTokenId, 10);
+    const totalListed = await token.socialTokenHolders(
+      currentTokenId,
+      addr1.address
+    );
+    const listedAmount = totalListed[3];
+    expect(1).to.eq(listedAmount);
+  });
 
+  it("User are able to unlist their hodling tokens", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    const currentTokenId = await token.getCurrentTokenId();
+    const price = 2;
+    await token.launchSocialToken(currentTokenId, price);
+    await token.connect(addr1).getEthosLink();
+    await token.connect(addr1).buySocialToken(currentTokenId, 1, owner.address);
+    await token.connect(addr1).listTokens(1, currentTokenId, 10);
+    await token.connect(addr1).withdrawTokens(1, currentTokenId);
+    const totalListed = await token.socialTokenHolders(
+      currentTokenId,
+      addr1.address
+    );
+    const listedAmount = totalListed[3];
+    expect(0).to.eq(listedAmount);
+  }
+  );
 });
