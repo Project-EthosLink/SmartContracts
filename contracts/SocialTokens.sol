@@ -33,10 +33,18 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         uint priceAtHolderBought;
     }
 
+    struct Creator {
+        uint tokenID;
+        address creator;
+        string _URI;
+    }
+
+    mapping(uint => Creator) public creators;
     mapping(uint => mapping(address => SocialTokenHolder))
         public socialTokenHolders;
     mapping(uint => SocialToken) public socialTokens;
 
+    event CratorRigistered(uint id, address creator, string URI);
     event SocialTokenMinted(
         uint id,
         address owner,
@@ -72,6 +80,13 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
     function getEthosLink() public {
         uint amount = 100 ether;
         _mint(msg.sender, EthosLink, amount, "");
+    }
+
+    function registerCreator(string memory URI) public {
+        tokenIds.increment();
+        uint256 _id = tokenIds.current();
+        creators[_id] = Creator(_id, msg.sender, URI);
+        emit CratorRigistered(_id, msg.sender, URI);
     }
 
     function mintSocialToken(

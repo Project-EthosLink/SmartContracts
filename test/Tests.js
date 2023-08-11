@@ -58,6 +58,18 @@ describe("Marketplace", function () {
   });
 });
 
+describe("Creator", function () {
+  it("A new reggistration should create an new crators mapping", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).registerCreator("Karthikeya");
+    const currentTokenId = await token.getCurrentTokenId();
+    const creator = await token.creators(currentTokenId);
+    const creatorAddress = creator[1];
+    expect(owner.address).to.eq(creatorAddress);
+  });
+});
+
 describe("User", function () {
   it("User can get the EthosLink", async function () {
     const token = await ethers.deployContract("SocialTokens");
@@ -104,6 +116,5 @@ describe("User", function () {
     );
     const listedAmount = totalListed[3];
     expect(0).to.eq(listedAmount);
-  }
-  );
+  });
 });
