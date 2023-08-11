@@ -16,7 +16,8 @@ describe("Minting and Launching", function () {
     await token.mintSocialToken(
       ethers.parseEther("10"),
       "karthikeya",
-      ethers.parseEther("10")
+      ethers.parseEther("10"),
+      true
     );
     const currentTokenId = await token.getCurrentTokenId();
     const tokenMinted = await token.socialTokens(currentTokenId);
@@ -27,7 +28,7 @@ describe("Minting and Launching", function () {
   it("Launching token should transfer total minted amount to the contract", async function () {
     const token = await ethers.deployContract("SocialTokens");
     const [owner, addr1] = await ethers.getSigners();
-    await token.mintSocialToken(1000, "karthikeya", 10);
+    await token.mintSocialToken(1000, "karthikeya", 10, true);
     const currentTokenId = await token.getCurrentTokenId();
     const price = ethers.parseEther("20");
     await token.launchSocialToken(currentTokenId, price);
@@ -45,7 +46,7 @@ describe("Marketplace", function () {
   it("Buying a social token creates an new mapping and transfers the given amount of token", async function () {
     const token = await ethers.deployContract("SocialTokens");
     const [owner, addr1] = await ethers.getSigners();
-    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10, true);
     const currentTokenId = await token.getCurrentTokenId();
     const price = 2;
     await token.launchSocialToken(currentTokenId, price);
@@ -84,7 +85,7 @@ describe("User", function () {
   it("User are able to list their hodling tokens", async function () {
     const token = await ethers.deployContract("SocialTokens");
     const [owner, addr1] = await ethers.getSigners();
-    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10, true);
     const currentTokenId = await token.getCurrentTokenId();
     const price = 2;
     await token.launchSocialToken(currentTokenId, price);
@@ -99,10 +100,24 @@ describe("User", function () {
     expect(1).to.eq(listedAmount);
   });
 
+  it("User are Unable to list their Non transferrable-tokens", async function () {
+    const token = await ethers.deployContract("SocialTokens");
+    const [owner, addr1] = await ethers.getSigners();
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10, false);
+    const currentTokenId = await token.getCurrentTokenId();
+    const price = 2;
+    await token.launchSocialToken(currentTokenId, price);
+    await token.connect(addr1).getEthosLink();
+    await token.connect(addr1).buySocialToken(currentTokenId, 1, owner.address);
+    expect(
+      token.connect(addr1).listTokens(1, currentTokenId, 10)
+    ).to.be.revertedWith("This is a non transferrable token");
+  });
+
   it("User are able to unlist their hodling tokens", async function () {
     const token = await ethers.deployContract("SocialTokens");
     const [owner, addr1] = await ethers.getSigners();
-    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10);
+    await token.connect(owner).mintSocialToken(1000, "karthikeya", 10, true);
     const currentTokenId = await token.getCurrentTokenId();
     const price = 2;
     await token.launchSocialToken(currentTokenId, price);

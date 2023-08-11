@@ -22,6 +22,7 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         uint totalAmount;
         uint currentlyListedAmount;
         uint resaleRoyaltyPercentage;
+        bool transferrable;
     }
 
     struct SocialTokenHolder {
@@ -92,7 +93,8 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
     function mintSocialToken(
         uint amount,
         string memory URI,
-        uint resaleRoyaltyPercentage
+        uint resaleRoyaltyPercentage,
+        bool _transferrable
     ) public {
         tokenIds.increment();
         uint256 _id = tokenIds.current();
@@ -105,7 +107,8 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
             0,
             amount,
             0,
-            resaleRoyaltyPercentage
+            resaleRoyaltyPercentage,
+            _transferrable
         );
         emit SocialTokenMinted(
             _id,
@@ -218,6 +221,10 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         require(
             socialTokenHolders[_id][msg.sender].holdingAmount >= _amount,
             "You do not have enough tokens"
+        );
+        require(
+            socialTokens[_id].transferrable == true,
+            "This is a non transferrable token"
         );
         _safeTransferFrom(msg.sender, address(this), _id, _amount, "");
         socialTokenHolders[_id][msg.sender].holdingAmount -= _amount;
