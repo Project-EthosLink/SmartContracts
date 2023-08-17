@@ -50,7 +50,9 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         uint id,
         address owner,
         uint amount,
-        uint resaleRoyaltyPercentage
+        uint resaleRoyaltyPercentage,
+        bool transferrable,
+        string URI
     );
     event SocialTokenLaunched(uint id, address owner, uint price);
     event SocialTokenBought(
@@ -87,6 +89,7 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
         tokenIds.increment();
         uint256 _id = tokenIds.current();
         creators[_id] = Creator(_id, msg.sender, URI);
+        _mint(msg.sender, _id, 1, "");
         emit CratorRigistered(_id, msg.sender, URI);
     }
 
@@ -114,7 +117,9 @@ contract SocialTokens is ERC1155URIStorage, ERC1155Holder {
             _id,
             msg.sender,
             amount,
-            resaleRoyaltyPercentage
+            resaleRoyaltyPercentage,
+            _transferrable,
+            URI
         );
     }
 
